@@ -1,7 +1,7 @@
 correctGuess:
 	push {r0-r3, lr}
 
-	ldr r0, =correctGuess
+	ldr r0, =correct
 	bl printf
 
 	pop {r0-r3, lr}
@@ -41,7 +41,7 @@ main:
 
 	mov r4, #0	@ word counter
 	ldr r6, =array @ array to hold chars of word
-
+	mov r5, #0 @ delete
 newLine:
 	cmp r4, r5
 	bgt newGuess 
@@ -59,8 +59,9 @@ newChar:
 	str r1, [r6], #1
 	b newChar
 
+	mov r8, #0 @ number of guesses
 newGuess:
-	push {r0-r3}
+	push {r0-r3, lr}
 	/* enter text prompt */
 	ldr r0, =enterCharText
 	bl printf
@@ -69,17 +70,31 @@ newGuess:
 	ldr r0, =format
 	ldr r1, =letterRead
 	bl scanf
-	pop {r0-r3}
+	pop {r0-r3, lr}
+
 	ldr r5, =array
-loop:
-	ldr r0, =format
-	ldr r2, [r5], #1
 	ldr r1, =letterRead
 	ldr r1, [r1]
+loopWord:
+	ldrb r2, [r5], #1
+	/* TEMPORARY PRINT START */
+	@ push {r0-r3, lr}
+	@ ldr r0, =printformat
+	@ mov r1, r2
+	@ bl printf
+	@ pop {r0-r3, lr}
+	/* TEMPORARY PRINT END */
 	cmp r1, r2 @ if input letter is in texts
 	bleq correctGuess
 	cmp r2, #0
-	bne loop
+	bne loopWord
+	add r8, r8, #1
+	cmp r8, #6 @ max number of guesses
+	bne newGuess
+
+loose:
+	ldr r0, =looseMessage
+	bl printf
 
 end:
 	mov r7, #1
@@ -87,12 +102,12 @@ end:
 
 .data
 welcomeMessage: .asciz "Welcome to Hangman!\n"
-enterCharText: .asciz "Please enter your guess or 0 to exit: "
-correct: .asciz "CORRECT !"
-format: .asciz "%c"
+enterCharText: .asciz "Enter Letter:\n"
+looseMessage: .asciz "You are out of guesses!\n"
+correct: .asciz "Correct!\n"
+format: .asciz "\n%c"
+@printformat: .asciz "%d"
 letterRead: .word 0
 filename: .asciz "words.s"
 buffer: .space 110
 array: .byte 16
-.align 4
-@array: .space 100
