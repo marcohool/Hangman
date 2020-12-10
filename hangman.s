@@ -1,8 +1,8 @@
 correctGuess:
     push {r0-r3, lr}
-    
+
     ldr r1, =correctLetters
-    str r0, [r1, r3]
+    strb r0, [r1, r3]
 
     pop {r0-r3, lr}
     bx lr
@@ -52,9 +52,27 @@ forLength:
     b forLength
 
 newGuess:
+    cmp r6, #0
+    ldreq r0, =lostlives0
+    cmp r6, #1
+    ldreq r0, =lostlives1
+    cmp r6, #2
+    ldreq r0, =lostlives2
+    cmp r6, #3
+    ldreq r0, =lostlives3
+    cmp r6, #4
+    ldreq r0, =lostlives4
+    cmp r6, #5
+    ldreq r0, =lostlives5
+    cmp r6, #6
+    ldreq r0, =lostlives6
+
+    push {r0-r3}
+    bl puts
+
     cmp r6, #6
     beq loose
-    push {r0-r3}
+
     ldr r0, =enterTextMessage
     bl printf
 
@@ -95,6 +113,11 @@ inputFormat: .asciz "\n%c"
 letterRead: .word 0
 buffer: .space 20
 correctLetters: .space 20
-
-
+lostlives0: .asciz "_________\n|    |\n|\n|\n|\n|\n|\n|________\n"
+lostlives1: .asciz "_________\n|    |\n|    O\n|\n|\n|\n|________\n"
+lostlives2: .asciz "_________\n|    |\n|    O\n|    |\n|    |\n|\n|________\n"
+lostlives3: .asciz "_________\n|    |\n|    O\n|   \\|\n|    |\n|\n|________\n"
+lostlives4: .asciz "_________\n|    |\n|    O\n|   \\|/\n|    |\n|\n|________\n"
+lostlives5: .asciz "_________\n|    |\n|    O\n|   \\|/\n|    |\n|   / \n|________"
+lostlives6: .asciz "_________\n|    |\n|    O\n|   \\|/\n|    |\n|   / \\ \n|________"
 
