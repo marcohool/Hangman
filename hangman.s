@@ -29,7 +29,7 @@ newGame:
 clearMisses:
     ldrb r1, [r0], #1
     cmp r1, #0
-    strne r2, [r1], #1
+    strne r2, [r0], #1
     bne clearMisses
 
 .global main
@@ -75,8 +75,8 @@ endfor:
     ldr r3, =correctLetters
     mov r4, #95
 forLength:
-    ldrb r8, [r0], #1
-    cmp r8, #10
+    ldrb r2, [r0], #1
+    cmp r2, #10
     moveq r6, #0 @number of lives
     beq newGuess
     str r4, [r3], #1
@@ -230,7 +230,7 @@ quit:
 .data
 filename: .asciz "words.txt"
 filemode: .asciz "r"
-welcomeTextMessage: .asciz "\nWelcome to Hangman!\n"
+welcomeTextMessage: .asciz "\nWelcome to Hangman made by Marco Boutchelski!\n"
 enterTextMessage: .asciz "Please enter your next character (A-Z), or 0 to exit:\n"
 looseTextMessage: .asciz "You have LOST !\n"
 invalidInputText: .asciz "Please enter a valid character (A-Z):\n"
