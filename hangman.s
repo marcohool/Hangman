@@ -1,10 +1,11 @@
 correctGuess:
     push {r0-r3, lr}
 
-    mov r4, #1 @ correct guesses = true
+    mov r4, #1 @ returns correct guesses = true
     ldr r1, =correctLetters
     strb r0, [r1, r3]
 
+    /* checks correctly entered words to see if all have been guessed */
     ldr r0, =correctLetters
     mov r2, #1 @ boolean win
 checkWin:
@@ -21,7 +22,7 @@ endCheckWin:
     pop {r0-r3, lr}
     bx lr
 
-
+    /* clear misses asciz in preparation for a new game */
 newGame:
     ldr r0, =misses
     mov r2, #0
@@ -52,6 +53,7 @@ main:
     ldr r0, =welcomeTextMessage
     bl puts
 	pop {r0-r3}
+    mov r8, r2 @ move file descriptor to r8 to be used to close the file at the end
 
     /* scan each line and store the line that has the same line number as the rand numb */
     mov r5, #0 
@@ -73,8 +75,8 @@ endfor:
     ldr r3, =correctLetters
     mov r4, #95
 forLength:
-    ldrb r2, [r0], #1
-    cmp r2, #10
+    ldrb r8, [r0], #1
+    cmp r8, #10
     moveq r6, #0 @number of lives
     beq newGuess
     str r4, [r3], #1
@@ -110,19 +112,23 @@ newGuess:
     
     bl puts
 
+    /* if user is out of lives branch */
     cmp r6, #6
     beq loose
 
+    /* prompt user to enter input */
     ldr r0, =enterTextMessage
     bl printf
     pop {r0-r3}
     b readInput
 
+    /* notifies user when they enter an invalid character */
 invalidInput:
     push {r0-r3}
     ldr r0, =invalidInputText
     bl printf
 
+    /* gets guess from user */
 readInput:
     ldr r0, =inputFormat
     ldr r1, =letterRead
@@ -132,6 +138,7 @@ readInput:
     ldr r0, =letterRead
     ldr r0, [r0]
 
+    /* checks if user has inputted 0 (quit) or an invalid character */
     cmp r0, #48
     beq quit
     cmp r0, #96
@@ -141,11 +148,12 @@ readInput:
     cmp r0, #90
     bgt invalidInput
 
+    /* checks strings containing correct guesses and misses to see if they have already guesses that character */
     ldr r2, =misses
-    mov r7, #0 @ number of strings checks
+    mov r7, #0 @ number of strings checked (if it is 2 both have been checked)
 checkAlreadyGuessed:
     ldrb r5, [r2], #1
-    cmp r5, #0 @ end of string
+    cmp r5, #0
     addeq r7, r7, #1
     ldreq r2, =correctLetters
     cmp r7, #2
@@ -157,13 +165,13 @@ checkAlreadyGuessed:
     pop {r0-r3} 
     beq newGuess
     b checkAlreadyGuessed
-    @ mov r3, #0
-    @ mov r4, #0 @ 0 = no correct guesses, 1 = correct guesses
-    
+
+    /* continutes if they guess has not already been entered */
 notAlreadyGuessed:
     ldr r1, =buffer 
     mov r3, #0
     mov r4, #0 @ 0 = no correct guesses, 1 = correct guesses
+    /* checks entered guess with characters from randomly generated word to see if there is a match */
 checkMatches:
     ldrb r2, [r1], #1
     cmp r2, r0
@@ -180,6 +188,7 @@ checkMatches:
     b newGuess
 
 loose:
+    /* if user has lost, lost message is displayed and word is revealed */
     ldr r0, =looseTextMessage
     bl puts
     ldr r0, =displayWordMessage
@@ -189,12 +198,13 @@ loose:
     b end
 
 win:
+    /* if user has won, displays win message */
     ldr r0, =winTextMessage
     bl puts
     b end
 
 end:
-
+    /* asks user if they would like to play again */
     ldr r0, =playAgainText
     bl puts
 
@@ -204,13 +214,16 @@ end:
 
     ldr r0, =letterRead
     ldr r0, [r0]
-
+    /* if user choses yes (1), game restarts */
     cmp r0, #49
     beq newGame
 
 quit:
-    # close file
+    /* close file */
+    mov r0, r8
+    bl fclose
 
+    /* ends program */
 	mov r7, #1
 	svc #0
 
